@@ -1,8 +1,12 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include<QTcpServer>
-#include<QTcpSocket>
+#include <QTcpServer>
+#include <QTcpSocket>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
+#include <QFile>
 
 class server: public QTcpServer
 {
@@ -18,6 +22,8 @@ public slots:
 private:
     QTcpSocket* socket;
     QByteArray Data;
+    QJsonDocument doc;
+    QJsonParseError docError;
 };
 
 #endif // SERVER_H

@@ -21,12 +21,34 @@ void server::incomingConnection(qintptr socketDescriptor){
 
     qDebug() << socketDescriptor << "Client connected";
 
-    socket->write("You are connected");
+    socket->write("{\"type\":\"connect\",\"status\":\"yes\"}");
     qDebug() << "Send client status connection - YES";
 }
 
-void server::sockReady(){
+void server::sockReady()
+{
+    Data = socket->readAll();
+    qDebug() << "Data" << Data;
+    doc = QJsonDocument::fromJson(Data, &docError);
 
+    if(docError.errorString() == "no error occurred")
+    {
+        if ((doc.object().value("type").toString() == "select") &&
+            (doc.object().value("params").toString() == "workers"))
+        {
+            QFile file;
+            file.setFileName("C:\\Projects qt\\clientserverapp\\clientserverapp\\workers.json");
+            if (file.open(QIODevice::ReadOnly | QFile::Text))
+            {
+                QByteArray fromFile = file.readAll();
+                QByteArray itog = "{\"type\":\"resultSelect\",\"result\":" + fromFile+"}";
+
+                socket->write(itog);
+                socket->waitForBytesWritten(500);
+            }
+            file.close();
+        }
+    }
 }
 
 void server::sockDisc(){

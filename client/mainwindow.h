@@ -5,6 +5,11 @@
 #include <QTcpSocket>
 #include <QMessageBox>
 #include <QDebug>
+#include <QJsonObject>
+#include <QJsonDocument>
+#include <QJsonParseError>
+#include <QStandardItem>
+#include <QJsonArray>
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -26,9 +31,13 @@ public slots:
 private slots:
     void on_pushButton_clicked();
 
+    void on_pushButton_2_clicked();
+
 private:
     Ui::MainWindow *ui;
     QTcpSocket *socket;
     QByteArray Data;
+    QJsonDocument doc;
+    QJsonParseError docError;
 };
 #endif // MAINWINDOW_H
