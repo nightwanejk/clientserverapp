@@ -53,13 +53,12 @@ void server::sockDisc(){
 void server::sendData()
 {
     doc = QJsonDocument::fromJson(Data, &docError);
-    if ((doc.object().value("type").toString() == "select") &&
-        (doc.object().value("params").toString() == "workers"))
+    if ((doc.object().value("type").toString() == "recSize") &&
+        (doc.object().value("resp").toString() == "workers"))
     {
+        itog = "{\"type\":\"resultSelect\",\"result\":[";
         if (db.isOpen())
         {
-            QByteArray itog = "{\"type\":\"resultSelect\",\"result\":[";
-
             QSqlQuery *query = new QSqlQuery(db);
             if (query->exec("SELECT name FROM listworkers"))
             {
@@ -68,14 +67,20 @@ void server::sendData()
                     itog.append("{\"name\":\"" + query->value(0).toString()+"\"},");
                 }
                 itog.remove(itog.length() - 1, 1);
-                itog.append("]}");
-
-                socket->write(itog);
-                socket->waitForBytesWritten(500);
             } else
             {
                 qDebug() << "Query not success.";
             }
+            delete query;
         }
+        itog.append("]}");
+        socket->write("{\"type\":\"size\",\"resp\":\"workers\",\"length\":"+QByteArray::number(itog.size())+"}");
+        socket->waitForBytesWritten(500);
+    }
+    else if ((doc.object().value("type").toString() == "select") &&
+             (doc.object().value("params").toString() == "workers"))
+    {
+        socket->write(itog);
+        socket->waitForBytesWritten(500);
     }
 }

@@ -24,13 +24,13 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+
 public slots:
     void sockReady();
     void sockDisc();
 
 private slots:
     void on_pushButton_clicked();
-
     void on_pushButton_2_clicked();
 
 private:
@@ -39,5 +39,7 @@ private:
     QByteArray Data;
     QJsonDocument doc;
     QJsonParseError docError;
+    int requireSize;
+    bool complexData = false;
 };
 #endif // MAINWINDOW_H

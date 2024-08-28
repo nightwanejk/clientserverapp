@@ -28,6 +28,7 @@ private:
     QJsonDocument doc;
     QJsonParseError docError;
     QSqlDatabase db;
+    QByteArray itog;
 };
 
 #endif // SERVER_H

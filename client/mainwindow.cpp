@@ -30,11 +30,16 @@ void MainWindow::sockDisc()
 void MainWindow::sockReady(){
     if (socket->waitForConnected(500))
     {
-        socket->waitForReadyRead(500);
-        Data = socket->readAll();
-
+        if (!complexData)
+        {
+            Data = socket->readAll();
+        }
+        else
+        {
+            Data.append(socket->readAll());
+            complexData = false;
+        }
         doc = QJsonDocument::fromJson(Data, &docError);
-
         if (docError.errorString() == "no error occurred")
         {
             if ((doc.object().value("type").toString() == "connect") &&
@@ -54,11 +59,19 @@ void MainWindow::sockReady(){
                 }
                 ui->tableView->setModel(model);
             }
+            else if ((doc.object().value("type").toString() == "size") &&
+                     (doc.object().value("resp").toString() == "workers"))
+            {
+                requireSize = doc.object().value("length").toInt();
+                socket->write("{\"type\":\"select\",\"params\":\"workers\"}");
+            }
             else
             {
-                QMessageBox::information(this, "Information", "Couldn't connect to server");
+                complexData = true;
+                sockReady();
             }
-        } else
+        }
+        else
         {
             QMessageBox::information(this, "Information", "Trouble with format data "+docError.errorString());
         }
@@ -69,7 +82,7 @@ void MainWindow::on_pushButton_2_clicked()
 {
     if (socket->isOpen())
     {
-        socket->write("{\"type\":\"select\",\"params\":\"workers\"}");
+        socket->write("{\"type\":\"recSize\",\"resp\":\"workers\"}");
         socket->waitForBytesWritten(500);
     } else
     {
