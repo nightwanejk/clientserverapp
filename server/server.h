@@ -7,6 +7,8 @@
 #include <QJsonObject>
 #include <QJsonParseError>
 #include <QFile>
+#include <QSqlDatabase>
+#include <QSqlQuery>
 
 class server: public QTcpServer
 {
@@ -14,6 +16,7 @@ class server: public QTcpServer
 public:
     server();
     ~server();
+    void sendData();
 public slots:
     void startServer();
     void incomingConnection(qintptr socketDescriptor);
@@ -24,6 +27,7 @@ private:
     QByteArray Data;
     QJsonDocument doc;
     QJsonParseError docError;
+    QSqlDatabase db;
 };
 
 #endif // SERVER_H

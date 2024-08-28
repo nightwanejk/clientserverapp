@@ -4,9 +4,20 @@ server::server() {}
 
 server::~server(){}
 
-void server::startServer(){
-    if(this->listen(QHostAddress::Any,5555)){
+void server::startServer()
+{
+    if(this->listen(QHostAddress::Any,5555))
+    {
         qDebug() << "Listening";
+        db = QSqlDatabase::addDatabase("QSQLITE");
+        db.setDatabaseName("D:\\workers.db");
+        if (db.open())
+        {
+            qDebug() << "Db open";
+        } else
+        {
+            qDebug() << "DB not open";
+        }
     } else{
         qDebug() << "Not Listening";
     }
@@ -28,30 +39,43 @@ void server::incomingConnection(qintptr socketDescriptor){
 void server::sockReady()
 {
     Data = socket->readAll();
-    qDebug() << "Data" << Data;
-    doc = QJsonDocument::fromJson(Data, &docError);
-
     if(docError.errorString() == "no error occurred")
     {
-        if ((doc.object().value("type").toString() == "select") &&
-            (doc.object().value("params").toString() == "workers"))
-        {
-            QFile file;
-            file.setFileName("C:\\Projects qt\\clientserverapp\\clientserverapp\\workers.json");
-            if (file.open(QIODevice::ReadOnly | QFile::Text))
-            {
-                QByteArray fromFile = file.readAll();
-                QByteArray itog = "{\"type\":\"resultSelect\",\"result\":" + fromFile+"}";
-
-                socket->write(itog);
-                socket->waitForBytesWritten(500);
-            }
-            file.close();
-        }
+        sendData();
     }
 }
 
 void server::sockDisc(){
     qDebug() << "Disconnect";
     socket->deleteLater();
+}
+
+void server::sendData()
+{
+    doc = QJsonDocument::fromJson(Data, &docError);
+    if ((doc.object().value("type").toString() == "select") &&
+        (doc.object().value("params").toString() == "workers"))
+    {
+        if (db.isOpen())
+        {
+            QByteArray itog = "{\"type\":\"resultSelect\",\"result\":[";
+
+            QSqlQuery *query = new QSqlQuery(db);
+            if (query->exec("SELECT name FROM listworkers"))
+            {
+                while (query->next())
+                {
+                    itog.append("{\"name\":\"" + query->value(0).toString()+"\"},");
+                }
+                itog.remove(itog.length() - 1, 1);
+                itog.append("]}");
+
+                socket->write(itog);
+                socket->waitForBytesWritten(500);
+            } else
+            {
+                qDebug() << "Query not success.";
+            }
+        }
+    }
 }
